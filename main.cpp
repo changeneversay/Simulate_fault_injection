@@ -32,10 +32,10 @@ int main()
 	string password = "change";//需要修改密码*********************************************************************
 	ifstream inFile_BSDL("C:/Users/changeneversay/Desktop/边界扫描/BS文件/bsdl文件/SN74BCT8244A.bsdl");//若execute = 0,需要修改路径保证程序正确&&&&&
 	string BSDL_name = "SN74BCT8244A";//若execute = 1,请传入BSDL文件名(大小写均可)&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-	vector<string>test1{ "NetJ2_4" };
-	vector<string>test2{ "NetU1_10" ,"NetU2_15"};
-	Net.push_back(test1);
-	Net.push_back(test2);
+	//vector<string>test1{ "NetJ2_4" };
+	//vector<string>test2{ "NetU1_10" ,"NetU2_15"};
+	//Net.push_back(test1);
+	//Net.push_back(test2);
 	MyDataBase m;
 	if (execute == 0)
 	{
