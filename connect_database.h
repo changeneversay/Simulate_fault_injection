@@ -47,20 +47,26 @@ public:
 	vector<string> select_componment_trans(const string& trans_name);
 	vector<string> select_Chain_U(const string& limits1, const string& limits2);
 	vector<string> select_constant_logic_name(const string& str1, const string& IOname);
+	vector<string> select_netinout_name(const string& Node_name);
 	void insert_table(const string& table, const string& value);
 	void insert_port_table(const string& table, const string& one, const string& two, const string& col1,const string& col2);
+	void insert_Netinout_table(const string& table, const string& one, const string& two, const string& three, const string& col1, const string& col2, const string& col3);
 	void insert_Hang_table(const string& table, const string& one, const string& col1);
 	void delete_table(const string& table, const string& value);
 	void delete_table(const string& table);
 	void update_table(const string& table, const string& value, const string& limits);
 	void Alter_table(const string& table, const string& op, const string& name_type);
 	void query(const string& limits, const string& command);
-	string Process_database(const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e);
+	string Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e);
 	void insert_vector(const vector<vector<string>>& port_v, const vector<vector<string>>& constant_info, const vector<vector<string>>& attribute_BR_info);
 	void insert_BR_table(const string& table, const string& one, const string& two, const string& three, const string& four, const string& five, const string& six, const string& seven, const string& eight, const string& col1, const string& col2, const string& col3, const string& col4, const string& col5, const string& col6, const string& col7, const string& col8);
 	void insert_BR_table(const string& table, const string& one, const string& two, const string& three, const string& four, const string& five, const string& col1, const string& col2, const string& col3, const string& col4, const string& col5);
 	void insert_chain_table(const string& table, const string& one, const string& two, const string& three, const string& four, const string& col1, const string& col2, const string& col3, const string& col4);
-	void Process_Chain(const string& str1);
+	void Process_Chain(const string& str1, const string& password);
 	void Process_Chain_road(const size_t& x,MyDataBase db, const string& str1, const string& temp_str, int chain_num,vector<string>& Mark, vector<vector<string>>& Chain_info);
 	vector<vector<string>> Process_All_Chain(MyDataBase db, const string& str1);
+	void Process_Fault_injection( const string& password, const string& dir, const string& Netlist_name, const string& tem_str,const string& Netlist_FileContent, const vector<vector<string>>& Net);
+	string Fault_injection_Shortcircuit(bool &peer, MyDataBase db, const string& password,const string& tem_str,const string& Netlist_FileContent, const vector<string>& Net);
+	string Fault_injection_Opencircuit(bool &peer, MyDataBase db, const string& password,const string& tem_str,const string& Netlist_FileContent, const vector<string>& Net);
+
 };

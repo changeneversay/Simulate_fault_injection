@@ -2,9 +2,14 @@
 #include"cbsdlreader.h"
 #include<string>
 #include<iostream>
+#include <fstream>
+#include <sstream>
+#include<regex>
 #include<vector>
 #include<cctype>
 using namespace std;
+string  node_trans_net(const string& m1);
+string  net_trans_node(const string& m1);
 void insert_ChainNet_info(MyDataBase db, const vector<vector<string>>& Net_inout, const vector<vector<string>>& Net_inout_Hang, const vector<vector<string>>& Net_Out_Unkown, const vector<vector<string>>& Net_in_hang, const vector<vector<string>>& Net_In_Unkown);
 void inNet(MyDataBase db, const vector<string>& Out_node, const vector<string>& In_node, const vector<vector<string>>& chain_info, const vector<vector<string>>& Net_inout, vector<vector<string>>& Net_in_Hang, vector<vector<string>>& Net_In_Unkown);//Õâ¸öchain_u½ö½öÖ»ÓĞÒ»¸öÔªËØ
 void outNet(MyDataBase db, const vector<string>& Out_node, const vector<string>& In_node, const vector<vector<string>>& chain_info, vector<vector<string>>& Net_inout, vector<vector<string>>& Net_out_Hang, vector<vector<string>>& Net_Out_Unkown);
@@ -218,6 +223,33 @@ vector<string> MyDataBase::select_componment_trans(const string& trans_name)
 		return ret;
 	}
 }
+vector<string> MyDataBase::select_netinout_name(const string& Node_name)
+{
+	string m1 = "\"";
+	string r = " or In_Net=";
+	string str = "SELECT * FROM t_net_inout where Out_Net=" + m1 + Node_name + m1 + r +m1 + Node_name + m1;
+	cout << str << endl;
+	if (mysql_query(sql, str.c_str()))
+	{
+		cout << mysql_error(sql) << endl;
+		cout << "select error!" << endl;
+		return{};
+	}
+	else
+	{
+		cout << str << " success" << endl;
+		vector<string> ret;
+		res = mysql_use_result(sql);
+		while ((row = mysql_fetch_row(res)) != nullptr)
+		{
+			unsigned int i = 0;
+			ret.push_back(row[i++]);
+		}
+		mysql_free_result(res);
+		res = nullptr;
+		return ret;
+	}
+}
 vector<string> MyDataBase::select_net_name(const string& Node_name)
 {
 	string m1 = "\"";
@@ -308,6 +340,16 @@ void MyDataBase::insert_table(const string& table, const string& value) {  //²åÈ
 void MyDataBase::insert_port_table(const string& table, const string& one,const string& two, const string& col1,const string& col2 ) 
 {
 	string str = "insert into " + table + "(" + col1 +","+col2 + ") values (" +"\""+ one +"\""+","+"\""+ two +"\""+ ")";
+	cout << str << endl;
+	if (mysql_query(sql, str.c_str())) {
+		cout << "insert error!" << endl;
+		return;
+	}
+	cout << "insert success!" << endl;
+}
+void MyDataBase::insert_Netinout_table(const string& table, const string& one, const string& two, const string& three,const string& col1, const string& col2, const string& col3)
+{
+	string str = "insert into " + table + "(" + col1 + "," + col2 + "," + col3 + ") values (" + "\"" + one + "\"" + "," + "\"" + two + "\"" +","+"\""+ three+"\""+ ")";
 	cout << str << endl;
 	if (mysql_query(sql, str.c_str())) {
 		cout << "insert error!" << endl;
@@ -415,7 +457,7 @@ void MyDataBase::query(const string& limits, const string& command) {
 	}
 	cout << "query success!" << endl;
 }
-string MyDataBase::Process_database(const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e)
+string MyDataBase::Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e)
 {
 	MyDataBase mdb;
 	vector<vector<string>>port_v = a;
@@ -426,7 +468,7 @@ string MyDataBase::Process_database(const vector<vector<string>>& a, const vecto
 	tem2 = tem1 + "_port";
 	tem3 = tem1 + "_constant";
 	tem4 = tem1 + "_boundary_register";
-	tem5 = tem1 + "_BSDL_DATA";
+	tem5 = tem1 + "_BSDL_Fault_Injection";
 	mdb.connect("localhost", "root", "change");
 	mdb.delete_database(tem5);
 	mdb.create_database(tem5);
@@ -576,11 +618,11 @@ void insert_info(MyDataBase mdb,const string & tem2, const string& tem3, const s
 		mdb.insert_port_table("componment_info", temp7, temp8, "componment_name", "componment_type");
 	}
 }
-void MyDataBase::Process_Chain(const string& str1)
+void MyDataBase::Process_Chain(const string& str1,const string& password)
 {
 	MyDataBase db;
-	db.connect("localhost", "root", "change");
-	db.use_database(str1+"_BSDL_DATA");
+	db.connect("localhost", "root", password);
+	db.use_database(str1+"_BSDL_Fault_Injection");
 	vector<vector<string>>Chain = db.Process_All_Chain(db, str1);
 	db.create_table("Chain_info", "chain_num varchar(40),chain_level varchar(40),componment_u varchar(40),componment_u_info varchar(40)");
 	insert_chain_info(db, Chain);
@@ -589,11 +631,11 @@ void MyDataBase::Process_Chain(const string& str1)
 	vector<vector<string>>V3 = Chain;
 	outNet(db, V1, V2, V3, Net_inout, Net_out_Hang, Net_Out_Unkown);
 	inNet(db, V1, V2, V3, Net_inout, Net_in_Hang, Net_In_Unkown);
-	db.create_table("T_NET_inout", "Out_Net varchar(40),In_Net varchar(40)");
-	db.create_table("T_NET_Hang_out", "Net varchar(40)");//Ğü¿ÕOUT
-	db.create_table("T_NET_Hang_in", "Net varchar(40)"); //Ğü¿ÕIN
-	db.create_table("T_NET_Unkown_Out", "Net varchar(40)");//Î´ÖªÊä³öÒı½Å,ÎŞ·¨¼ì²â
-	db.create_table("T_NET_Unkown_In", "Net varchar(40)");//Î´Öª½ÓÊÕÒı½Å,ÎŞ·¨¼ì²â
+	db.create_table("T_NET_inout", "Num varchar(40),Out_Net varchar(40),In_Net varchar(40)");
+	db.create_table("T_NET_Hang_out", "Num varchar(40),Net varchar(40)");//Ğü¿ÕOUT
+	db.create_table("T_NET_Hang_in", "Num varchar(40),Net varchar(40)"); //Ğü¿ÕIN
+	db.create_table("T_NET_Unkown_Out", "Num varchar(40),Net varchar(40)");//Î´ÖªÊä³öÒı½Å,ÎŞ·¨¼ì²â
+	db.create_table("T_NET_Unkown_In", "Num varchar(40),Net varchar(40)");//Î´Öª½ÓÊÕÒı½Å,ÎŞ·¨¼ì²â
 	insert_ChainNet_info(db, Net_inout, Net_out_Hang,Net_Out_Unkown, Net_in_Hang,Net_In_Unkown);
 	db.disconnect();
 }
@@ -1100,31 +1142,36 @@ void insert_ChainNet_info(MyDataBase db, const vector<vector<string>>& Net_inout
 		string tem1, tem2;
 		tem1 = Net_inout[i][0];//OUT
 		tem2 = Net_inout[i][1];//IN
-		db.insert_port_table("T_NET_inout", tem1, tem2, "Out_Net", "In_Net");
+		string k = to_string(i);
+		db.insert_Netinout_table("T_NET_inout", k, tem1, tem2, "Num", "Out_Net", "In_Net");
 	}
 	for (auto i = 0; i != Net_out_Hang.size(); i++)
 	{
 		string tem1;
 		tem1 = Net_out_Hang[i][0];
-		db.insert_Hang_table("T_NET_Hang_out", tem1, "NET");
+		string k = to_string(i);
+		db.insert_port_table("T_NET_Hang_out", k,tem1, "Num","NET");
 	}
 	for (auto i = 0; i != Net_Out_Unkown.size(); i++)
 	{
 		string tem1;
 		tem1 = Net_Out_Unkown[i][0];
-		db.insert_Hang_table("T_NET_Unkown_Out", tem1, "NET");
+		string k = to_string(i);
+		db.insert_port_table("T_NET_Unkown_Out", k, tem1, "Num", "NET");
 	}
 	for (auto i = 0; i != Net_In_Unkown.size(); i++)
 	{
 		string tem1;
 		tem1 = Net_In_Unkown[i][0];
-		db.insert_Hang_table("T_NET_Unkown_In", tem1, "NET");
+		string k = to_string(i);
+		db.insert_port_table("T_NET_Unkown_In", k,tem1,"Num", "NET");
 	}
 	for (auto i = 0; i != Net_in_hang.size(); i++)
 	{
 		string tem1;
 		tem1 = Net_in_hang[i][0];
-		db.insert_Hang_table("T_NET_Hang_in", tem1, "NET");
+		string k = to_string(i);
+		db.insert_port_table("T_NET_Hang_in",k, tem1,"Num", "NET");
 	}
 
 }
@@ -1160,6 +1207,98 @@ void inNet(MyDataBase db, const vector<string>& Out_node, const vector<string>& 
 				    Net_in_Hang.push_back(net_name);
 				}
 			}
+		} 
+	}
+}
+void MyDataBase::Process_Fault_injection(const string& password, const string& dir, const string& Netlist_name,const string& tem_str,const string& Netlist_FileContent, const vector<vector<string>>& Net)//¹ÊÕÏ×¢ÈëÖ´ĞĞ³ÌĞò  1ÎªBSDLÆ÷¼şÃû2ÎªÍø±íÄÚÈİ3Îª´«ÈëµÄĞèÒªĞŞ¸ÄµÄÍøÂç¸öÊı
+{//ÅĞ¶Ï´«ÈëµÄÒ»Î¬vectorÖĞÔªËØ¸öÊı,Ñ¡ÔñºÏÊÊËã·¨
+	string Content= Netlist_FileContent;
+	MyDataBase db;
+	string temp = dir;
+	size_t pos = 0;
+	bool peer = 0;
+	while ((pos = temp.find(Netlist_name)) != -1)
+	{
+		temp.erase(pos, Netlist_name.size());
+	}
+	cout << temp << endl;
+	string Netlist_path = temp;
+	for (auto i = 0; i != Net.size(); ++i)
+	{
+		if (Net[i].size() == 1)
+		{ 
+			Content = db.Fault_injection_Shortcircuit(peer,db,password,tem_str, Content,Net[i]);//¶ÌÂ·Ëã·¨
+		}
+		else
+		{
+			Content = db.Fault_injection_Opencircuit(peer,db, password,tem_str, Content, Net[i]);//¶ÏÂ·Ëã·¨
 		}
 	}
+	string New_Netlist = Netlist_path + "InFault_"+Netlist_name;
+	ofstream Net_file(New_Netlist);
+	Net_file << Content << endl;
+	Net_file.close();
+}
+string MyDataBase::Fault_injection_Shortcircuit(bool &peer,MyDataBase db,const string&password,const string& tem_str,const string &Netlist_FileContent ,const vector<string>& Net)//¶ÌÂ·ĞŞ¸ÄËã·¨
+{
+	if (peer == 0)
+	{
+		db.connect("localhost", "root", password);
+		db.use_database(tem_str);
+		peer = 1;
+	}
+	string Fault_injection_Netlist = Netlist_FileContent;
+	size_t x = 2;
+	string Net_str = Net[0];
+	vector<string>node_name = db.select_node_name(Net_str);//´æÏÂËùÔÚÍøÂçµÄÁ½¸öÔªËØ(¹Ü½ÌÃû)
+	string ghs1 = node_trans_net(node_name[0]);
+	string ghs2 = node_trans_net(node_name[1]);
+	string Net1 = "Net" + ghs1 + '\n' + node_name[0] + '\n' + ")";
+	string Net2 = "\n(\nNet" + ghs2 + '\n' + node_name[1] + '\n';
+	string Net_regex = Net_str + "([\\s\\S]*?)(?=\\))";//Æ¥ÅäÏàÓ¦ÍøÂçĞÅÏ¢
+	regex keyword_ShortNet(Net_regex);
+	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_ShortNet, Net1 + Net2);
+	cout << Fault_injection_Netlist << endl;
+	return Fault_injection_Netlist;
+}
+string MyDataBase::Fault_injection_Opencircuit(bool &peer, MyDataBase db, const string& password, const string& tem_str,const string &Netlist_FileContent, const vector<string>& Net)//¶ÏÂ·ĞŞ¸ÄËã·¨
+{
+	if (peer == 0)
+	{
+		db.connect("localhost", "root", password);
+		db.use_database(tem_str);
+		peer = 1;
+	}
+	string Fault_injection_Netlist = Netlist_FileContent;
+	size_t x = 1;
+    string Net_str1 = Net[0];
+	string Net_str2 = Net[1];
+	vector<string>node_name1 = db.select_node_name(Net_str1);//Ò»¸öÔªËØ
+	vector<string>node_name2 = db.select_node_name(Net_str2);//Ò»¸öÔªËØ
+	string ghs1 = node_trans_net(node_name1[0]);
+	string net_str = "Net" + ghs1 + '\n' + node_name1[0] + '\n' + node_name2[0] + '\n';
+	cout << net_str << endl;
+	string Net_regex1 = "\\(([\\s\\S]" + Net_str1 + "[\\s\\S]*?)\\)";//Æ¥ÅäÏàÓ¦ÍøÂçĞÅÏ¢
+	string Net_regex2 = Net_str2 + "([\\s\\S]*?)(?=\\))";//Æ¥ÅäÏàÓ¦ÍøÂçĞÅÏ¢
+	regex keyword_OpenNet1(Net_regex1);
+	regex keyword_OpenNet2(Net_regex2);
+	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet1, "");
+	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet2, net_str);
+    return Fault_injection_Netlist;
+}
+string  node_trans_net(const string& m1)
+{
+	string k1 = m1;
+	regex keyword("-");
+	string r = "_";
+	string okk = regex_replace(k1, keyword, r);
+	return okk;
+}
+string  net_trans_node(const string& m1)
+{
+	string k1 = m1;
+	regex keyword("_");
+	string r = "-";
+	string okk = regex_replace(k1, keyword, r);
+	return okk;
 }
