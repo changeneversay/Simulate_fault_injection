@@ -24,7 +24,7 @@
 using namespace std;
 int main()
 {
-	bool execute = 0;//0代表故障注入解析,1代表故障注入直接采用主程序数据库*************************************
+	bool execute = 1;//0代表故障注入解析,1代表故障注入直接采用主程序数据库*************************************
 	vector<vector<string>>Net;//界面传入二维vector,不限个数,每个一维vector代表一次故障注入,一维vector内的元素仅能1个或两个*********************************************************
 	//一个元素必须为可测网络名(一个网络名包含两个引脚),默认执行短路故障注入;两个元素为悬空网络名(每个网络名下仅一个引脚),默认执行断路故障注入;
 	string dir = "C:/Users/changeneversay/Desktop/边界扫描/BScan_Demo/BScan_Demo_3.NET";//无论如何都需要修改路径********************
@@ -32,10 +32,10 @@ int main()
 	string password = "change";//需要修改密码*********************************************************************
 	ifstream inFile_BSDL("C:/Users/changeneversay/Desktop/边界扫描/BS文件/bsdl文件/SN74BCT8244A.bsdl");//若execute = 0,需要修改路径保证程序正确&&&&&
 	string BSDL_name = "SN74BCT8244A";//若execute = 1,请传入BSDL文件名(大小写均可)&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-	//vector<string>test1{ "NetJ2_4" };
-	//vector<string>test2{ "NetU1_10" ,"NetU2_15"};
-	//Net.push_back(test1);
-	//Net.push_back(test2);
+	vector<string>test1{ "NetJ2_4" };
+	vector<string>test2{ "NetU1_10" ,"NetU2_15"};
+	Net.push_back(test1);
+	Net.push_back(test2);
 	MyDataBase m;
 	if (execute == 0)
 	{
@@ -81,7 +81,7 @@ int main()
 	}
 	else
     {
-		string database1 = BSDL_name + "_BSDL_Fault_Injection";// "_BSDL_DATA";
+		string database1 = BSDL_name +  "_BSDL_DATA";
 		ifstream inFile_Netlist(dir);
 		ostringstream temp_Netlist;
 		temp_Netlist << inFile_Netlist.rdbuf();
