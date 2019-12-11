@@ -1222,22 +1222,30 @@ void MyDataBase::Process_Fault_injection(const string& password, const string& d
 		temp.erase(pos, Netlist_name.size());
 	}
 	cout << temp << endl;
-	string Netlist_path = temp;
-	for (auto i = 0; i != Net.size(); ++i)
+	string Netlist_path = temp; 
+	size_t u = 0;
+	if (Net.size() == 0)
 	{
-		if (Net[i].size() == 1)
-		{ 
-			Content = db.Fault_injection_Shortcircuit(peer,db,password,tem_str, Content,Net[i]);//短路算法
-		}
-		else
-		{
-			Content = db.Fault_injection_Opencircuit(peer,db, password,tem_str, Content, Net[i]);//断路算法
-		}
+		cout << "未传入有效网络" << endl;
 	}
-	string New_Netlist = Netlist_path + "InFault_"+Netlist_name;
-	ofstream Net_file(New_Netlist);
-	Net_file << Content << endl;
-	Net_file.close();
+	else
+	{
+		for (auto i = 0; i != Net.size(); ++i)
+		{
+			if (Net[i].size() == 1)
+			{
+				Content = db.Fault_injection_Shortcircuit(peer, db, password, tem_str, Content, Net[i]);//短路算法
+			}
+			else
+			{
+				Content = db.Fault_injection_Opencircuit(peer, db, password, tem_str, Content, Net[i]);//断路算法
+			}
+		}
+		string New_Netlist = Netlist_path + "InFault_" + Netlist_name;
+		ofstream Net_file(New_Netlist);
+		Net_file << Content << endl;
+		Net_file.close();
+	}
 }
 string MyDataBase::Fault_injection_Shortcircuit(bool &peer,MyDataBase db,const string&password,const string& tem_str,const string &Netlist_FileContent ,const vector<string>& Net)//短路修改算法
 {
@@ -1251,15 +1259,23 @@ string MyDataBase::Fault_injection_Shortcircuit(bool &peer,MyDataBase db,const s
 	size_t x = 2;
 	string Net_str = Net[0];
 	vector<string>node_name = db.select_node_name(Net_str);//存下所在网络的两个元素(管教名)
-	string ghs1 = node_trans_net(node_name[0]);
-	string ghs2 = node_trans_net(node_name[1]);
-	string Net1 = "Net" + ghs1 + '\n' + node_name[0] + '\n' + ")";
-	string Net2 = "\n(\nNet" + ghs2 + '\n' + node_name[1] + '\n';
-	string Net_regex = Net_str + "([\\s\\S]*?)(?=\\))";//匹配相应网络信息
-	regex keyword_ShortNet(Net_regex);
-	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_ShortNet, Net1 + Net2);
-	cout << Fault_injection_Netlist << endl;
-	return Fault_injection_Netlist;
+	size_t b = 0;
+	if (node_name.size() == b)
+	{
+		cout << "数据库引脚查询失败" << endl;
+	}
+	else
+	{
+		string ghs1 = node_trans_net(node_name[0]);
+		string ghs2 = node_trans_net(node_name[1]);
+		string Net1 = "Net" + ghs1 + '\n' + node_name[0] + '\n' + ")";
+		string Net2 = "\n(\nNet" + ghs2 + '\n' + node_name[1] + '\n';
+		string Net_regex = Net_str + "([\\s\\S]*?)(?=\\))";//匹配相应网络信息
+		regex keyword_ShortNet(Net_regex);
+		Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_ShortNet, Net1 + Net2);
+		cout << Fault_injection_Netlist << endl;
+		return Fault_injection_Netlist;
+	}
 }
 string MyDataBase::Fault_injection_Opencircuit(bool &peer, MyDataBase db, const string& password, const string& tem_str,const string &Netlist_FileContent, const vector<string>& Net)//断路修改算法
 {
@@ -1275,16 +1291,24 @@ string MyDataBase::Fault_injection_Opencircuit(bool &peer, MyDataBase db, const 
 	string Net_str2 = Net[1];
 	vector<string>node_name1 = db.select_node_name(Net_str1);//一个元素
 	vector<string>node_name2 = db.select_node_name(Net_str2);//一个元素
-	string ghs1 = node_trans_net(node_name1[0]);
-	string net_str = "Net" + ghs1 + '\n' + node_name1[0] + '\n' + node_name2[0] + '\n';
-	cout << net_str << endl;
-	string Net_regex1 = "\\(([\\s\\S]" + Net_str1 + "[\\s\\S]*?)\\)";//匹配相应网络信息
-	string Net_regex2 = Net_str2 + "([\\s\\S]*?)(?=\\))";//匹配相应网络信息
-	regex keyword_OpenNet1(Net_regex1);
-	regex keyword_OpenNet2(Net_regex2);
-	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet1, "");
-	Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet2, net_str);
-    return Fault_injection_Netlist;
+	size_t b2 = 0;
+	if ((node_name1.size() == 0) || (node_name2.size() == 0))
+	{
+		cout << "未查找到有效引脚" << endl;
+	}
+	else
+	{
+		string ghs1 = node_trans_net(node_name1[0]);
+		string net_str = "Net" + ghs1 + '\n' + node_name1[0] + '\n' + node_name2[0] + '\n';
+		cout << net_str << endl;
+		string Net_regex1 = "\\(([\\s\\S]" + Net_str1 + "[\\s\\S]*?)\\)";//匹配相应网络信息
+		string Net_regex2 = Net_str2 + "([\\s\\S]*?)(?=\\))";//匹配相应网络信息
+		regex keyword_OpenNet1(Net_regex1);
+		regex keyword_OpenNet2(Net_regex2);
+		Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet1, "");
+		Fault_injection_Netlist = regex_replace(Fault_injection_Netlist, keyword_OpenNet2, net_str);
+		return Fault_injection_Netlist;
+	}
 }
 string  node_trans_net(const string& m1)
 {
