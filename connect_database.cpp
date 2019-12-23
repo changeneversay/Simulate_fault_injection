@@ -1235,13 +1235,21 @@ void MyDataBase::Process_Fault_injection(const string& password, const string& d
 			if (Net[i].size() == 1)
 			{
 				Content = db.Fault_injection_Shortcircuit(peer, db, password, tem_str, Content, Net[i]);//短路算法
+				if (Content == "error")
+				{
+					cout << "故障注入失败" << endl;
+				}
 			}
 			else
 			{
 				Content = db.Fault_injection_Opencircuit(peer, db, password, tem_str, Content, Net[i]);//断路算法
+				if (Content == "error")
+				{
+					cout << "故障注入失败" << endl;
+				}
 			}
 		}
-		string New_Netlist = Netlist_path + "InFault_" + Netlist_name;
+		string New_Netlist = Netlist_path + "FI_" + Netlist_name;
 		ofstream Net_file(New_Netlist);
 		Net_file << Content << endl;
 		Net_file.close();
@@ -1263,6 +1271,7 @@ string MyDataBase::Fault_injection_Shortcircuit(bool &peer,MyDataBase db,const s
 	if (node_name.size() == b)
 	{
 		cout << "数据库引脚查询失败" << endl;
+		return "error";
 	}
 	else
 	{
@@ -1295,6 +1304,7 @@ string MyDataBase::Fault_injection_Opencircuit(bool &peer, MyDataBase db, const 
 	if ((node_name1.size() == 0) || (node_name2.size() == 0))
 	{
 		cout << "未查找到有效引脚" << endl;
+		return "error";
 	}
 	else
 	{
