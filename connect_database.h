@@ -57,7 +57,7 @@ public:
 	void update_table(const string& table, const string& value, const string& limits);
 	void Alter_table(const string& table, const string& op, const string& name_type);
 	void query(const string& limits, const string& command);
-	string Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e);
+	string Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const string& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e);
 	void insert_vector(const vector<vector<string>>& port_v, const vector<vector<string>>& constant_info, const vector<vector<string>>& attribute_BR_info);
 	void insert_BR_table(const string& table, const string& one, const string& two, const string& three, const string& four, const string& five, const string& six, const string& seven, const string& eight, const string& col1, const string& col2, const string& col3, const string& col4, const string& col5, const string& col6, const string& col7, const string& col8);
 	void insert_BR_table(const string& table, const string& one, const string& two, const string& three, const string& four, const string& five, const string& col1, const string& col2, const string& col3, const string& col4, const string& col5);

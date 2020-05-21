@@ -21,6 +21,10 @@ ReadCadenceProtelNetList::ReadCadenceProtelNetList(string netListDir)
 {
 	// 实现把网表文件一次全部读入到string里：
 	ifstream inFile_NetList(netListDir);
+	if (!inFile_NetList)
+	{
+		cout << "打开网表文件失败！" << endl;
+	}
 	ostringstream temp;
 	temp << inFile_NetList.rdbuf();
 	string netListFileContent = temp.str();

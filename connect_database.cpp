@@ -457,14 +457,14 @@ void MyDataBase::query(const string& limits, const string& command) {
 	}
 	cout << "query success!" << endl;
 }
-string MyDataBase::Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const vector<string>& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e)
+string MyDataBase::Process_database(const string& password,const vector<vector<string>>& a, const vector<vector<string>>& b, const vector<vector<string>>& c, const string& end_info, const vector<vector<string>>& d, const vector<vector<string>>& e)
 {
 	MyDataBase mdb;
 	vector<vector<string>>port_v = a;
 	vector<vector<string>>constant_v = b;
 	vector<vector<string>>br_v = c;
 	string tem1, tem2, tem3, tem4, tem5;
-	tem1 = end_info[0].c_str();//器件名称
+	tem1 = end_info.c_str();//器件名称
 	tem2 = tem1 + "_port";
 	tem3 = tem1 + "_constant";
 	tem4 = tem1 + "_boundary_register";
@@ -484,7 +484,7 @@ string MyDataBase::Process_database(const string& password,const vector<vector<s
 	return tem1;
 }
 void MyDataBase::insert_vector(const vector<vector<string>>&port_v, const vector<vector<string>>& constant_info, const vector<vector<string>>& attribute_BR_info)
-{
+{//查看输出
 	for (auto i = 0; i != port_v.size(); i++)
 	{
 		for (auto j = 0; j != port_v[i].size(); j++)
@@ -572,6 +572,10 @@ void insert_info(MyDataBase mdb,const string & tem2, const string& tem3, const s
 	}
 	for (auto i = 0; i != br_v.size(); i++)
 	{
+		if (br_v[i].size() == 0)
+		{
+			continue;
+		}
 		auto m = br_v[i].size();
 		string temp5, temp6, temp7, temp8, temp9, temp10, temp11, temp12;
 		if (m > 6)
@@ -639,14 +643,14 @@ void MyDataBase::Process_Chain(const string& str1,const string& password)
 	insert_ChainNet_info(db, Net_inout, Net_out_Hang,Net_Out_Unkown, Net_in_Hang,Net_In_Unkown);
 	db.disconnect();
 }
-void MyDataBase::Process_Chain_road(const size_t& x,MyDataBase db,const string &str1,const string& temp_str, int chain_num, vector<string>& Mark, vector<vector<string>>& Chain_info)//单链生成
+void MyDataBase::Process_Chain_road(const size_t& x,MyDataBase db,const string &str1,const string& temp_str, int chain_num, vector<string>& Mark, vector<vector<string>>& Chain_info) //单链生成
 {
 	string tempt1;
 	string center = temp_str;
 	int turn = 1;
 	int C_num = 1;
 	string c_num_str = to_string(C_num);
-	string next_u = center;
+	string next_u = center; 
 	vector<string>Chain_name;
 	string num = to_string(chain_num);
 	string chain_num_str = "chain" + num;
